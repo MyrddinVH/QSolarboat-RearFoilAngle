@@ -44,9 +44,9 @@ int IMU_Parse(uint8_t *rx, uint16_t len, IMU_Data *out)
 void fuse_orientation (IMU_Data *imu_fl, IMU_Data *imu_mid, IMU_Data *imu_fr, FusedOrientation *out)
 {
     #ifdef SINGLE_IMU
-        out->global_yaw   = imu_mid->angle[0];
-        out->global_roll  = imu_mid->angle[1];
-        out->global_pitch = imu_mid->angle[2];
+        out->global_yaw   = imu_fl->angle[0];
+        out->global_roll  = imu_fl->angle[1];
+        out->global_pitch = imu_fl->angle[2];
         return;
     #else
         float x_yaw = cosf(imu_fl->angle[0]) + cosf(imu_mid->angle[0]) + cosf(imu_fr->angle[0]);

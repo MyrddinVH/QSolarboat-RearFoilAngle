@@ -186,22 +186,6 @@ while (1)
           fusedOrientation.global_roll = fuse_roll(fusedOrientation.global_roll, roll_from_ultra);
           corrected_distance[0] = corrected_height(filtered_distance[0], fusedOrientation.global_roll, fusedOrientation.global_pitch);
           corrected_distance[1] = corrected_height(filtered_distance[1], fusedOrientation.global_roll, fusedOrientation.global_pitch);
-          
-          //! DATABASE TEST OUTPUT
-          char msg[256];
-          float left_height   = corrected_distance[0];
-          float right_height  = corrected_distance[1];
-          float global_height = (left_height + right_height) / 2.0f;
-
-          float roll_f  = fusedOrientation.global_roll;
-          float pitch_f = fusedOrientation.global_pitch;
-          float yaw_f   = fusedOrientation.global_yaw;
-          
-          int len = snprintf(msg, sizeof(msg),"%.2f, %.2f, %.2f, %.2f, %.2f, %.2f \r\n",
-          left_height, right_height, global_height, 
-          roll_f, pitch_f, yaw_f);
-          HAL_UART_Transmit(&huart2,(uint8_t*)msg,len,100);
-          //! END DATABASE TEST OUTPUT
 
           SendCANData(&hcan1, corrected_distance, &fusedOrientation);
         } 
