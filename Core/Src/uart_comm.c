@@ -127,8 +127,8 @@ void Modbus_Send_Request(UART_HandleTypeDef *huart1, uint8_t addr)
                 d->gyro[0], d->gyro[1], d->gyro[2],
                 d->angle[0], d->angle[1], d->angle[2]);
         }
-
-        HAL_UART_Transmit(&huart2, (uint8_t*)msg, len, 100);
+        //!uncomment for accelerometer data
+        // HAL_UART_Transmit(&huart2, (uint8_t*)msg, len, 100);
     }
 #endif
 

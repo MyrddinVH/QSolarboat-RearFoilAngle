@@ -44,13 +44,13 @@ int IMU_Parse(uint8_t *rx, uint16_t len, IMU_Data *out)
 void fuse_orientation (IMU_Data *imu_fl, IMU_Data *imu_mid, IMU_Data *imu_fr, FusedOrientation *out)
 {
     #ifdef SINGLE_IMU
-        out->global_yaw   = imu_fl->angle[0];
+        out->global_yaw   = imu_fl->angle[2];
         out->global_roll  = imu_fl->angle[1];
-        out->global_pitch = imu_fl->angle[2];
+        out->global_pitch = imu_fl->angle[0];
         return;
     #else
-        float x_yaw = cosf(imu_fl->angle[0]) + cosf(imu_mid->angle[0]) + cosf(imu_fr->angle[0]);
-        float y_yaw = sinf(imu_fl->angle[0]) + sinf(imu_mid->angle[0]) + sinf(imu_fr->angle[0]);
+        float x_yaw = cosf(imu_fl->angle[2]) + cosf(imu_mid->angle[2]) + cosf(imu_fr->angle[2]);
+        float y_yaw = sinf(imu_fl->angle[2]) + sinf(imu_mid->angle[2]) + sinf(imu_fr->angle[2]);
         float yaw = atan2(y_yaw, x_yaw);
         if (yaw < 0.0f)
         {
@@ -60,7 +60,7 @@ void fuse_orientation (IMU_Data *imu_fl, IMU_Data *imu_mid, IMU_Data *imu_fr, Fu
 
 
         out->global_roll = (imu_fl->angle[1] + imu_mid->angle[1] + imu_fr->angle[1]) / 3.0f;
-        out->global_pitch  = (imu_fl->angle[2] + imu_mid->angle[2] + imu_fr->angle[2]) / 3.0f;
+        out->global_pitch  = (imu_fl->angle[0] + imu_mid->angle[0] + imu_fr->angle[0]) / 3.0f;
     #endif
 }
 
