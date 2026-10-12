@@ -123,7 +123,6 @@ int main(void)
   /* USER CODE BEGIN WHILE */
 while (1)
 {
-  // HAL_Delay(1000);
     switch (state)
     {
       case STATE_SEND_IMU:

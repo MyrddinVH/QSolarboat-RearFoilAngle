@@ -49,8 +49,8 @@ void SendCANData(CAN_HandleTypeDef *hcan1, const float *corrected_distance, cons
     TxHeader.StdId = 0x100;
     TxHeader.DLC   = 6;
 
-    while (HAL_CAN_GetTxMailboxesFreeLevel(hcan1) == 0);
-    HAL_CAN_AddTxMessage(hcan1, &TxHeader, can_data1, &TxMailbox);
+    // while (HAL_CAN_GetTxMailboxesFreeLevel(hcan1) == 0);
+    // HAL_CAN_AddTxMessage(hcan1, &TxHeader, can_data1, &TxMailbox);
 
     float roll_f  = fusedOrientation->global_roll;
     float pitch_f = fusedOrientation->global_pitch;
