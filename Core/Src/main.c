@@ -187,7 +187,18 @@ while (1)
           corrected_distance[0] = corrected_height(filtered_distance[0], fusedOrientation.global_roll, fusedOrientation.global_pitch);
           corrected_distance[1] = corrected_height(filtered_distance[1], fusedOrientation.global_roll, fusedOrientation.global_pitch);
 
-          SendCANData(&hcan1, corrected_distance, &fusedOrientation);
+          float acc[3];
+          #ifdef SINGLE_IMU
+            for(int i = 0; i < 3; i++){
+              acc[i] = imu_data[0].acc[i];
+            } 
+          #else
+            for (int i = 0; i < 3; i++){
+              acc[i] = imu_data[0].acc[i] + imu_data[1].acc[i] + imu_data[2].acc[i] / 3.0f;
+            }
+          #endif
+
+          SendCANData(&hcan1, corrected_distance, &fusedOrientation, acc);
         } 
         state = STATE_SEND_IMU;
         break;

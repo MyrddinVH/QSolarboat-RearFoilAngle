@@ -1,4 +1,5 @@
 #include "can_comm.h"
+#include "stm32l4xx_hal_can.h"
 
 CAN_TxHeaderTypeDef TxHeader;
 uint32_t TxMailbox;
@@ -19,7 +20,13 @@ void initCAN(CAN_HandleTypeDef *hcan1)
     TxHeader.TransmitGlobalTime = DISABLE;
 }
 
-void SendCANData(CAN_HandleTypeDef *hcan1, const float *corrected_distance, const FusedOrientation *fusedOrientation)
+static int16_t to_i16(float v){
+    if(v > 32767.0f) return 32767;
+    if(v< -32768.0f) return 32767;
+    return (int16_t) v;
+}
+
+void SendCANData(CAN_HandleTypeDef *hcan1, const float *corrected_distance, const FusedOrientation *fusedOrientation, const float *acc)
 {
     float left_height   = corrected_distance[0];
     float right_height  = corrected_distance[1];
@@ -81,4 +88,25 @@ void SendCANData(CAN_HandleTypeDef *hcan1, const float *corrected_distance, cons
 
     while (HAL_CAN_GetTxMailboxesFreeLevel(hcan1) == 0);
     HAL_CAN_AddTxMessage(hcan1, &TxHeader, can_data2, &TxMailbox);
+
+
+    //accelerometer frame (0x102)
+    int16_t ax = to_i16(acc[0] * 1000.0f);
+    int16_t ay = to_i16(acc[1] * 1000.0f);
+    int16_t az = to_i16(acc[2] * 1000.0f);
+
+
+    uint8_t can_data3[6];
+    can_data3[0] = ax >> 8;
+    can_data3[1] = ax & 0xFF;
+    can_data3[2] = ay >> 8;
+    can_data3[3] = ay & 0xFF;
+    can_data3[4] = az >> 8;
+    can_data3[5] = az & 0xFF;
+
+    TxHeader.StdId = 0x102;
+    TxHeader.DLC = 6;
+
+    while(HAL_CAN_GetTxMailboxesFreeLevel(hcan1) == 0);
+    HAL_CAN_AddTxMessage(hcan1, &TxHeader, can_data3, &TxMailbox);
 }
