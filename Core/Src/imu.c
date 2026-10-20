@@ -1,4 +1,17 @@
 #include "imu.h"
+#include "math.h"
+#include "main.h"
+#include <stdint.h>
+
+#define GRAVITY       9.80665f
+#define DEG_TO_RAD    0.01745329252f
+
+#define ACCEL_THRESHOLD 0.005f
+
+static float forward_accel_offset = -0.26f;
+
+static float estimated_speed = 0.0f;
+static uint32_t speed_timestamp = 0;
 
 //TODO ADD IMU CALIBRATION
 
@@ -32,6 +45,47 @@ int IMU_Parse(uint8_t *rx, uint16_t len, IMU_Data *out)
     }
 
     return 0;
+}
+
+float IMU_GetForwardAcceleration(const IMU_Data *imu){
+
+    float pitch = imu->angle[0] * DEG_TO_RAD;
+    float roll = imu->angle[1] * DEG_TO_RAD;
+
+    float gravity_y = sinf(pitch) * cosf(roll);
+
+    float forward_accel = (imu->acc[1] - gravity_y) * GRAVITY;
+
+    if(forward_accel <= ACCEL_THRESHOLD){
+        return 0;
+    }
+
+    return forward_accel - forward_accel_offset;
+}
+
+float IMU_UpdateSpeed(const IMU_Data *imu)
+{
+    uint32_t now = HAL_GetTick();
+
+    if (speed_timestamp == 0)
+    {
+        speed_timestamp = now;
+        return estimated_speed;
+    }
+
+    float dt = (now - speed_timestamp) / 1000.0f;
+    speed_timestamp = now;
+
+    // Voorkom integratie bij een ongeldige of te lange meetpauze
+    if (dt <= 0.0f || dt > 0.5f)
+    {
+        return estimated_speed;
+    }
+
+    float acceleration = IMU_GetForwardAcceleration(imu);
+    estimated_speed += acceleration * dt;
+
+    return estimated_speed;
 }
 
 /**

@@ -1,5 +1,7 @@
 #include "can_comm.h"
 #include "stm32l4xx_hal_can.h"
+#include <stdio.h>
+#include <string.h>
 
 CAN_TxHeaderTypeDef TxHeader;
 uint32_t TxMailbox;
@@ -71,7 +73,9 @@ void SendCANData(CAN_HandleTypeDef *hcan1, const float *corrected_distance, cons
     len = snprintf(debug_msg, sizeof(debug_msg),
                    "ANGLES -> Roll: %.2f (%d) | Pitch: %.2f (%d) | Yaw: %.2f (%d)\r\n",
                    roll_f, roll, pitch_f, pitch, yaw_f, yaw);
-    HAL_UART_Transmit(&huart2, (uint8_t*)debug_msg, len, 100);
+
+    //!angle debug msg
+    // HAL_UART_Transmit(&huart2, (uint8_t*)debug_msg, len, 100);
 #endif
 
     uint8_t can_data2[6];
@@ -90,23 +94,23 @@ void SendCANData(CAN_HandleTypeDef *hcan1, const float *corrected_distance, cons
     HAL_CAN_AddTxMessage(hcan1, &TxHeader, can_data2, &TxMailbox);
 
 
-    //accelerometer frame (0x7E4)
-    int16_t ax = to_i16(acc[0] * 1000.0f);
-    int16_t ay = to_i16(acc[1] * 1000.0f);
-    int16_t az = to_i16(acc[2] * 1000.0f);
+    // //accelerometer frame (0x7E4)
+    // int16_t ax = to_i16(acc[0] * 1000.0f);
+    // int16_t ay = to_i16(acc[1] * 1000.0f);
+    // int16_t az = to_i16(acc[2] * 1000.0f);
 
 
-    uint8_t can_data3[6];
-    can_data3[0] = ax >> 8;
-    can_data3[1] = ax & 0xFF;
-    can_data3[2] = ay >> 8;
-    can_data3[3] = ay & 0xFF;
-    can_data3[4] = az >> 8;
-    can_data3[5] = az & 0xFF;
+    // uint8_t can_data3[6];
+    // can_data3[0] = ax >> 8;
+    // can_data3[1] = ax & 0xFF;
+    // can_data3[2] = ay >> 8;
+    // can_data3[3] = ay & 0xFF;
+    // can_data3[4] = az >> 8;
+    // can_data3[5] = az & 0xFF;
 
-    TxHeader.StdId = 0x7E4;
-    TxHeader.DLC = 6;
+    // TxHeader.StdId = 0x7E4;
+    // TxHeader.DLC = 6;
 
-    while(HAL_CAN_GetTxMailboxesFreeLevel(hcan1) == 0);
-    HAL_CAN_AddTxMessage(hcan1, &TxHeader, can_data3, &TxMailbox);
+    // while(HAL_CAN_GetTxMailboxesFreeLevel(hcan1) == 0);
+    // HAL_CAN_AddTxMessage(hcan1, &TxHeader, can_data3, &TxMailbox);
 }

@@ -21,5 +21,7 @@ int IMU_Parse(uint8_t *rx, uint16_t len, IMU_Data *out);
 float foil_angle(float h_cm);
 void fuse_orientation (IMU_Data *imu_fl, IMU_Data *imu_mid, IMU_Data *imu_fr, FusedOrientation *out);
 float fuse_roll(float roll_imu, float roll_ultra); 
+float IMU_GetForwardAcceleration(const IMU_Data *imu);
+float IMU_UpdateSpeed(const IMU_Data *imu);
 
 #endif
