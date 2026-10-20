@@ -6,7 +6,8 @@
 #define GRAVITY       9.80665f
 #define DEG_TO_RAD    0.01745329252f
 
-#define ACCEL_THRESHOLD 0.005f
+// #define ACCEL_THRESHOLD 0.015f
+#define ACCEL_THRESHOLD 0.0f
 
 static float forward_accel_offset = -0.26f;
 
@@ -47,20 +48,26 @@ int IMU_Parse(uint8_t *rx, uint16_t len, IMU_Data *out)
     return 0;
 }
 
-float IMU_GetForwardAcceleration(const IMU_Data *imu){
-
+float IMU_GetForwardAcceleration(const IMU_Data *imu)
+{
     float pitch = imu->angle[0] * DEG_TO_RAD;
-    float roll = imu->angle[1] * DEG_TO_RAD;
+    float roll  = imu->angle[1] * DEG_TO_RAD;
 
     float gravity_y = sinf(pitch) * cosf(roll);
 
     float forward_accel = (imu->acc[1] - gravity_y) * GRAVITY;
 
-    if(forward_accel <= ACCEL_THRESHOLD){
-        return 0;
+    // Compenseer de gemeten offset
+    forward_accel -= forward_accel_offset;
+
+    // Verwijder alleen kleine ruis rond nul,
+    // maar behoud negatieve acceleratie.
+    if (fabsf(forward_accel) < ACCEL_THRESHOLD)
+    {
+        forward_accel = 0.0f;
     }
 
-    return forward_accel - forward_accel_offset;
+    return forward_accel;
 }
 
 float IMU_UpdateSpeed(const IMU_Data *imu)
