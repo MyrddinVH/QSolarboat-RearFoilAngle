@@ -83,14 +83,14 @@ void SendCANData(CAN_HandleTypeDef *hcan1, const float *corrected_distance, cons
     can_data2[4] = yaw >> 8;
     can_data2[5] = yaw & 0xFF;
 
-    TxHeader.StdId = 0x101;
+    TxHeader.StdId = 0x7E3;
     TxHeader.DLC   = 6;
 
     while (HAL_CAN_GetTxMailboxesFreeLevel(hcan1) == 0);
     HAL_CAN_AddTxMessage(hcan1, &TxHeader, can_data2, &TxMailbox);
 
 
-    //accelerometer frame (0x102)
+    //accelerometer frame (0x7E4)
     int16_t ax = to_i16(acc[0] * 1000.0f);
     int16_t ay = to_i16(acc[1] * 1000.0f);
     int16_t az = to_i16(acc[2] * 1000.0f);
@@ -104,7 +104,7 @@ void SendCANData(CAN_HandleTypeDef *hcan1, const float *corrected_distance, cons
     can_data3[4] = az >> 8;
     can_data3[5] = az & 0xFF;
 
-    TxHeader.StdId = 0x102;
+    TxHeader.StdId = 0x7E4;
     TxHeader.DLC = 6;
 
     while(HAL_CAN_GetTxMailboxesFreeLevel(hcan1) == 0);
