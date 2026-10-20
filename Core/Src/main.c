@@ -13,6 +13,7 @@
 /* USER CODE BEGIN Includes */
 #include <stdint.h>
 #include <string.h>
+#include "imu.h"
 #include "stm32l4xx_hal.h"
 #include "uart_comm.h"
 #include "can_comm.h"
@@ -198,13 +199,14 @@ while (1)
             }
           #endif
           //!testcode start
-          float speed = IMU_UpdateSpeed(&imu_data[0]);
+          // float speed = IMU_UpdateSpeed(&imu_data[0]);
+          IMU_UpdateSpeed(&imu_data[0]);
           float acceleration = IMU_GetForwardAcceleration(&imu_data[0]);
-          float speedKMH = speed * 3.6f;
+          float speedKMH = Speed_GetKmh();
             // float forward_acc = IMU_GetForwardAcceleration(&imu_data[0]);
             char msg[100];
             // int len = snprintf(msg, sizeof(msg), "AY: %.3f AZ: %.3f Pitch: %.2f Roll: %.2f | Speed: %.3f Accel: %.3f\r\n", imu_data[0].acc[1], imu_data[0].acc[2], imu_data[0].angle[0], imu_data[0].angle[1], speed, acceleration);
-            int len = snprintf(msg, sizeof(msg), "Speed(m/s): %.3f | Speed(km/h): %.3f | Accel: %.3f\r\n", speed, speedKMH, acceleration);
+            int len = snprintf(msg, sizeof(msg), "Speed(km/h): %.3f | Accel: %.3f\r\n",speedKMH, acceleration);
             HAL_UART_Transmit(&huart2, (uint8_t *)msg, len, 100);
           //!testcode end
           SendCANData(&hcan1, corrected_distance, &fusedOrientation, acc);
@@ -220,6 +222,7 @@ while (1)
         break;
       }
     }
+    GPS_ProcessCAN(&hcan1);
   }
   /* USER CODE END 3 */
 }

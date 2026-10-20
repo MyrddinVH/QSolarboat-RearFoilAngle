@@ -2,6 +2,7 @@
 #include "stm32l4xx_hal_can.h"
 #include <stdio.h>
 #include <string.h>
+#include "imu.h"
 
 CAN_TxHeaderTypeDef TxHeader;
 uint32_t TxMailbox;
@@ -12,14 +13,97 @@ uint32_t TxMailbox;
 
 void initCAN(CAN_HandleTypeDef *hcan1)
 {
-    HAL_CAN_Start(hcan1);
+    CAN_FilterTypeDef filter = {0};
+
+    filter.FilterBank = 0;
+    filter.FilterMode = CAN_FILTERMODE_IDMASK;
+    filter.FilterScale = CAN_FILTERSCALE_32BIT;
+    filter.FilterIdHigh = 0x0000;
+    filter.FilterIdLow = 0x0000;
+    filter.FilterMaskIdHigh = 0x0000;
+    filter.FilterMaskIdLow = 0x0000;
+    filter.FilterFIFOAssignment = CAN_FILTER_FIFO0;
+    filter.FilterActivation = ENABLE;
+
+    if (HAL_CAN_ConfigFilter(hcan1, &filter) != HAL_OK)
+    {
+        // Error_Handler();
+    }
+
+    if (HAL_CAN_Start(hcan1) != HAL_OK)
+    {
+        // Error_Handler();
+    }
 
     TxHeader.StdId = 0x123;
     TxHeader.ExtId = 0;
     TxHeader.IDE = CAN_ID_STD;
     TxHeader.RTR = CAN_RTR_DATA;
-    TxHeader.DLC = 2;
+    TxHeader.DLC = 8;
     TxHeader.TransmitGlobalTime = DISABLE;
+}
+
+void GPS_ProcessCAN(CAN_HandleTypeDef *hcan)
+{
+    CAN_RxHeaderTypeDef rxHeader;
+    uint8_t rxData[8];
+
+    while (HAL_CAN_GetRxFifoFillLevel(hcan, CAN_RX_FIFO0) > 0)
+    {
+        if (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &rxHeader, rxData) != HAL_OK)
+        {
+            continue;
+        }
+
+        // Alleen standaard dataframes met GPS-ID 0x783
+        if (rxHeader.IDE != CAN_ID_STD ||
+            rxHeader.RTR != CAN_RTR_DATA ||
+            rxHeader.StdId != 0x783)
+        {
+            continue;
+        }
+
+        if (rxHeader.DLC != 8)
+        {
+            continue;
+        }
+
+        uint8_t gps_fix = rxData[0];
+
+        // Data[1..4] bevat de float, LSB eerst
+        float gps_speed_kmh;
+        memcpy(&gps_speed_kmh, &rxData[1], sizeof(gps_speed_kmh));
+
+        char msg[100];
+
+        if (gps_fix == 1)
+        {
+            float gps_speed_ms = gps_speed_kmh / 3.6f;
+        
+            // GPS overschrijft direct de IMU-snelheid
+            IMU_SetSpeed(gps_speed_ms);
+        
+        #ifdef DEBUG_PRINTS
+            int len = snprintf(msg, sizeof(msg),"GPS fix: YES | GPS: %.2f km/h | IMU reset: %.2f km/h\r\n",(double)gps_speed_kmh,(double)Speed_GetKmh());
+        
+            if (len > 0 && len < (int)sizeof(msg))
+            {
+                HAL_UART_Transmit(&huart2, (uint8_t *)msg, (uint16_t)len, 100);
+            }
+        #endif
+        }
+        else
+        {
+            #ifdef DEBUG_PRINTS
+            int len = snprintf(msg, sizeof(msg),"GPS fix: NO | Raw speed: %.2f km/h\r\n",(double)gps_speed_kmh);
+
+            if (len > 0 && len < (int)sizeof(msg))
+            {
+                HAL_UART_Transmit(&huart2, (uint8_t *)msg, (uint16_t)len, 100);
+            }
+            #endif
+        }
+    }
 }
 
 static int16_t to_i16(float v){

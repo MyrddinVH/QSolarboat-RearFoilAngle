@@ -88,6 +88,16 @@ float IMU_UpdateSpeed(const IMU_Data *imu)
     return estimated_speed;
 }
 
+void IMU_SetSpeed(float speed_ms)
+{
+    estimated_speed = speed_ms;
+}
+
+float Speed_GetKmh(void)
+{
+    return estimated_speed * 3.6f;
+}
+
 /**
 * \brief Fuses the orientation data from multiple IMUs by taking the angles from the middle IMU as the global orientation.
  * \param imu_fl Pointer to the IMU data structure for the front-left IMU.

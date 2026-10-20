@@ -23,5 +23,7 @@ void fuse_orientation (IMU_Data *imu_fl, IMU_Data *imu_mid, IMU_Data *imu_fr, Fu
 float fuse_roll(float roll_imu, float roll_ultra); 
 float IMU_GetForwardAcceleration(const IMU_Data *imu);
 float IMU_UpdateSpeed(const IMU_Data *imu);
+void IMU_SetSpeed(float speed_ms);
+float Speed_GetKmh(void);
 
 #endif
